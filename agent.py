@@ -4,7 +4,9 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 
 
 class State(TypedDict):
@@ -17,6 +19,7 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 llm = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 
 def chatbot(state: State):
@@ -52,3 +55,10 @@ while True:
         print("User: " + user_input)
         stream_graph_updates(user_input)
         break
+
+
+vector_store = Chroma(
+    collection_name="example_collection",
+    embedding_function=embeddings,
+    persist_directory="./chroma_langchain_db",  # Where to save data locally, remove if not necessary
+)
