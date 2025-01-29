@@ -14,7 +14,7 @@ def query_chroma(query: str):
         embedding_function=embeddings,
         persist_directory="./chroma_langchain_db",
     )
-    results = vector_store.similarity_search(query)
+    results = vector_store.similarity_search_with_score(query, k=1)
     for result in results:
         print(result)
 

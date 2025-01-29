@@ -5,9 +5,11 @@ import mimetypes
 
 from tqdm import tqdm
 
+from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 vector_store = Chroma(
@@ -30,6 +32,14 @@ def get_text_files() -> List[str]:
                     text_files.append(str(_path))
     return text_files
 
+def get_pdf_files():
+    for SOURCE_DIR in SOURCE_DIRS:
+        loader = PyPDFDirectoryLoader(SOURCE_DIR)
+        documents = loader.load()
+        text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+        docs = text_splitter.split_documents(documents)
+        vector_store.add_documents(documents=docs, ids=[str(uuid4()) for _ in range(len(docs))])
+
 def populate_db(files: list[str]):
     for _path in tqdm(files):
         with open(_path, "r") as f:
@@ -49,4 +59,6 @@ def populate_db(files: list[str]):
 
 if __name__ == "__main__":
     _files = get_text_files()
+    get_pdf_files()
+
     populate_db(_files)
