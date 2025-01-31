@@ -19,7 +19,6 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-graph_builder = StateGraph(State)
 
 llm = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
@@ -28,14 +27,6 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 def chatbot(state: State):
     return {"messages": [llm.invoke(state["messages"])]}
 
-# The first argument is the unique node name
-# The second argument is the function or object that will be called whenever
-# the node is used.
-graph_builder.add_node("chatbot", chatbot)
-graph_builder.add_edge(START, "chatbot")
-graph_builder.add_edge("chatbot", END)
-
-graph = graph_builder.compile()
 
 SYSTEM_TEMPLATE = """
 Answer the user's questions based on the below context. 
