@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bs4>=0.0.2",
+    "click>=8.1.8",
     "cryptography>=3.1",
     "langchain-community>=0.3.16",
     "langchain-ollama>=0.2.2",
@@ -13,5 +14,6 @@ dependencies = [
     "langchain_chroma",
     "langgraph>=0.2.68",
     "langsmith>=0.3.2",
+    "pypdf>=5.4.0",
     "tqdm>=4.67.1",
 ]

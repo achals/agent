@@ -1,4 +1,7 @@
 import os
+from email.policy import default
+
+import click
 from typing import List
 from uuid import uuid4
 import mimetypes
@@ -19,11 +22,11 @@ vector_store = Chroma(
 )
 
 # Source directory location for embedding
-SOURCE_DIRS = ["/Users/achal/Documents", "/Users/achal/Downloads"]
+SOURCE_DIRS = ["/Users/achals/Documents", "/Users/achals/Downloads"]
 
-def get_text_files() -> List[str]:
+def get_text_files(locations: List[str]) -> List[str]:
     text_files = []
-    for SOURCE_DIR in SOURCE_DIRS:
+    for SOURCE_DIR in locations:
         for root, dirs, files in os.walk(SOURCE_DIR):
             for file in files:
                 _path = os.path.join(root, file)
@@ -32,16 +35,20 @@ def get_text_files() -> List[str]:
                     text_files.append(str(_path))
     return text_files
 
-def get_pdf_files():
-    for SOURCE_DIR in SOURCE_DIRS:
+def get_pdf_files(locations):
+    for SOURCE_DIR in locations:
         loader = PyPDFDirectoryLoader(SOURCE_DIR)
         documents = loader.load()
+        if not documents:
+            return
+        print(f"Found {len(documents)} PDF files in {SOURCE_DIR}")
         text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
         docs = text_splitter.split_documents(documents)
-        vector_store.add_documents(documents=docs, ids=[str(uuid4()) for _ in range(len(docs))])
+        for doc in tqdm(docs, desc="Ingesting PDFs"):
+            vector_store.add_documents(documents=doc)
 
 def populate_db(files: list[str]):
-    for _path in tqdm(files):
+    for _path in tqdm(files, desc="Ingesting other files"):
         with open(_path, "r") as f:
             try:
                 content = f.read()
@@ -56,9 +63,18 @@ def populate_db(files: list[str]):
                 print(f"Error processing {_path}")
                 continue
 
-
-if __name__ == "__main__":
-    _files = get_text_files()
-    get_pdf_files()
+@click.command()
+@click.option('--locations',
+              help='The locations on disk to read through to populate the knowledge base (vectorstore).',
+              multiple=True,
+              default=SOURCE_DIRS)
+def populate_personal_knowledge(locations):
+    print(f"Using {locations}")
+    _files = get_text_files(locations)
+    get_pdf_files(locations)
 
     populate_db(_files)
+
+
+if __name__ == "__main__":
+    populate_personal_knowledge()
