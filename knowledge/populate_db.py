@@ -37,7 +37,8 @@ def get_text_files(locations: List[str]) -> List[str]:
 
 def get_pdf_files(locations):
     for SOURCE_DIR in locations:
-        loader = PyPDFDirectoryLoader(SOURCE_DIR)
+        loader = PyPDFDirectoryLoader(SOURCE_DIR, silent_errors=False)
+        print(f"Looking for PDF files in {SOURCE_DIR}")
         documents = loader.load()
         if not documents:
             return
